@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, Sequential, load_model
 from tensorflow.keras.layers import Dense, Input
 from sklearn.model_selection import train_test_split
 
@@ -18,19 +18,12 @@ def format_output(data):
     return y1, y2
 
 def build_model(train):
-    # Define model layers.
     input_layer = Input(shape=(len(train .columns),))
     first_dense = Dense(units='128', activation='relu')(input_layer)
-    # Y1 output will be fed from the first dense
     y1_output = Dense(units='1', name='Score1_output')(first_dense)
-
     second_dense = Dense(units='128', activation='relu')(first_dense)
-    # Y2 output will be fed from the second dense
     y2_output = Dense(units='1', name='Score2_output')(second_dense)
-
-    # Define the model with the input layer and a list of output layers
     model = Model(inputs=input_layer, outputs=[y1_output, y2_output])
-
     return model
 
 def plot_diff(history, y_true, y_pred, title=''):
@@ -82,12 +75,19 @@ def main():
     print(f'score1_rmse: {Y1_rmse}')
     print(f'score2_rmse: {Y2_rmse}')
 
-    Y_pred = model.predict(norm_test_X)
-    price_pred = Y_pred[0]
-    ptratio_pred = Y_pred[1]
 
-    plot_diff(history, test_Y[0], Y_pred[0], title='Score1')
-    plot_diff(history, test_Y[1], Y_pred[1], title='Score2')
+    Y_pred = model.predict(norm_test_X)
+    Score1_pred = Y_pred[0]
+    Score2_pred = Y_pred[1]
+
+    plot_diff(history, test_Y[0], Score1_pred, title='Score1')
+    plot_diff(history, test_Y[1], Score2_pred, title='Score2')
+
+    model.save('../models/basicNNmodel.h5')
+    print('Model Saved!')
+
+    savedModel = load_model('../models/basicNNmodel.h5')
+    savedModel.summary()
 
 
 if __name__ == "__main__":
